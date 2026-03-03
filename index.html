@@ -83,16 +83,16 @@
 
         <div class="input-section">
             <h2>Your Information:</h2>
-            <label for="vacationDays">Anticipated Number of Vacation Days per year:</label>
+            <label for="vacationDays">Number of Vacation Days per year:</label>
             <input type="number" id="vacationDays" value="15" min="0">
 
-            <label for="sickDays">Number of Sick Days per year:</label>
-            <input type="number" id="sickDays" value="5" min="0">
+            <label for="sickDays">Number of Sick/Family Days per year:</label>
+            <input type="number" id="sickDays" value="10" min="0">
 
             <label for="companyHolidays">Number of Company Holidays per year:</label>
-            <input type="number" id="companyHolidays" value="12" min="0">
+            <input type="number" id="companyHolidays" value="18" min="0">
             <p class="note">
-                <em>Default company holidays are based on typical Ford US salaried employee schedules, including major holidays and a Christmas/New Year's shutdown period. Please adjust if your specific holiday count differs.</em>
+                <em>Default company holidays and sick/family days are based on common Ford US salaried employee estimates. Please adjust if your specific counts differ.</em>
             </p>
 
             <button onclick="calculateDays()">Calculate My Allowance</button>
@@ -113,10 +113,17 @@
             const weeklyRemoteDaysAllowed = 1;
             const annualRemoteDaysAllowed = totalWorkWeeks * weeklyRemoteDaysAllowed; // 52 days
 
+            // Days that are *not* the weekly remote day, and are subject to the 72% in-person rule
             const mandatoryInPersonDaysPool = totalAnnualWorkingDays - annualRemoteDaysAllowed; // 208 days
 
             const maxMissablePercentage = 0.28; // 28%
+            const minInPersonPercentage = 0.72; // 72%
+
+            // Maximum number of days that can be "missed" from the mandatory in-person pool
             const maxMissableInPersonAllowance = mandatoryInPersonDaysPool * maxMissablePercentage; // 208 * 0.28 = 58.24 days
+
+            // Minimum number of days that MUST be in-person from the mandatory in-person pool
+            const minRequiredInPersonDays = mandatoryInPersonDaysPool * minInPersonPercentage; // 208 * 0.72 = 149.76 days
 
             // Get user inputs
             const vacationDays = parseFloat(document.getElementById('vacationDays').value) || 0;
@@ -134,12 +141,13 @@
                 <ul>
                     <li>You are allowed <strong>${annualRemoteDaysAllowed}</strong> remote days per year (1 day/week).</li>
                     <li>This leaves <strong>${mandatoryInPersonDaysPool}</strong> days that are subject to the in-person requirement.</li>
+                    <li>To meet the 72% in-person requirement, you must be in the office at least <strong>${Math.ceil(minRequiredInPersonDays)}</strong> days out of these ${mandatoryInPersonDaysPool} days.</li>
                     <li>Your maximum total allowance for "missable" in-person days (including vacation, sick, and holidays) is approximately <strong>${maxMissableInPersonAllowance.toFixed(2)}</strong> days (28% of ${mandatoryInPersonDaysPool} days).</li>
                 </ul>
                 <p>With your inputs:</p>
                 <ul>
                     <li>You have <strong>${vacationDays}</strong> vacation days.</li>
-                    <li>You have <strong>${sickDays}</strong> sick days.</li>
+                    <li>You have <strong>${sickDays}</strong> sick/family days.</li>
                     <li>You have <strong>${companyHolidays}</strong> company holidays.</li>
                     <li>Your total pre-allocated non-working days (vacation + sick + holidays) are <strong>${totalUsedAllowance.toFixed(2)}</strong> days.</li>
                 </ul>
@@ -147,10 +155,13 @@
                 <p>After accounting for your vacation, sick, and company holidays, you have approximately <strong><span style="color: ${remainingFlexDays < 0 ? 'red' : 'green'}; font-weight: bold;">${remainingFlexDays.toFixed(2)}</span></strong> additional flexible "missable" in-person days remaining for the year.</p>
                 <p>This means:</p>
                 <ul>
-                    <li>You have utilized <strong>${percentageUsedOfAllowance.toFixed(2)}%</strong> of your total 28% missable allowance with vacation days, anticipated sick days, and company holidays.</li>
+                    <li>You have utilized <strong>${percentageUsedOfAllowance.toFixed(2)}%</strong> of your total 28% missable allowance with (vacation + sick + holidays).</li>
                     <li>You have <strong>${percentageRemainingOfAllowance.toFixed(2)}%</strong> of your total 28% missable allowance remaining.</li>
                 </ul>
-                ${remainingFlexDays < 0 ? `<p style="color: red; font-weight: bold;">Warning: You have exceeded your 28% missable allowance by ${Math.abs(remainingFlexDays).toFixed(2)} days. You may need to adjust your in-person attendance or day usage.</p>` : ''}
+                ${remainingFlexDays < 0 ? `<p style="color: red; font-weight: bold;"><strong>Warning:</strong> You have exceeded your 28% missable allowance by ${Math.abs(remainingFlexDays).toFixed(2)} days. You may need to adjust your in-person attendance or day usage.</p>` : ''}
+                <div class="note">
+                    <strong>Reminder:</strong> Please refer to official company policies for definitive guidance.
+                </div>
             `;
         }
         // Run calculation on load for default values
@@ -158,3 +169,4 @@
     </script>
 </body>
 </html>
+
