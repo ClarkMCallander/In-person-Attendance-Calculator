@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Remote Day Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #0056b3;
+        }
+        .rule-section, .input-section, .output-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="number"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .output-section p {
+            margin-bottom: 8px;
+        }
+        .output-section strong {
+            color: #0056b3;
+        }
+        .note {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Remote Day Allowance Calculator</h1>
+
+        <div class="rule-section">
+            <h2>Understanding the Rules:</h2>
+            <ul>
+                <li>Each team member is allowed <strong>1 remote day per 5-day work week</strong>.</li>
+                <li>Of the remaining 4 in-person days, you need to be in-person at least <strong>72% of the time</strong>.</li>
+                <li>This means a maximum of <strong>28% of those in-person days can be "missed"</strong> (not counting your weekly remote day).</li>
+                <li>Sick days, holidays, and vacation days contribute to this <strong>28% missable allowance</strong>.</li>
+            </ul>
+        </div>
+
+        <div class="input-section">
+            <h2>Your Information:</h2>
+            <label for="vacationDays">Anticipated Number of Vacation Days per year:</label>
+            <input type="number" id="vacationDays" value="15" min="0">
+
+            <label for="sickDays">Number of Sick Days per year:</label>
+            <input type="number" id="sickDays" value="5" min="0">
+
+            <label for="companyHolidays">Number of Company Holidays per year:</label>
+            <input type="number" id="companyHolidays" value="12" min="0">
+            <p class="note">
+                <em>Default company holidays are based on typical Ford US salaried employee schedules, including major holidays and a Christmas/New Year's shutdown period. Please adjust if your specific holiday count differs.</em>
+            </p>
+
+            <button onclick="calculateDays()">Calculate My Allowance</button>
+        </div>
+
+        <div class="output-section" id="outputResults">
+            <h2>Your Allowance Details:</h2>
+            <p>Enter your details and click 'Calculate' to see your results.</p>
+        </div>
+    </div>
+
+    <script>
+        function calculateDays() {
+            const totalWorkWeeks = 52;
+            const daysPerWorkWeek = 5;
+            const totalAnnualWorkingDays = totalWorkWeeks * daysPerWorkWeek; // 260 days
+
+            const weeklyRemoteDaysAllowed = 1;
+            const annualRemoteDaysAllowed = totalWorkWeeks * weeklyRemoteDaysAllowed; // 52 days
+
+            const mandatoryInPersonDaysPool = totalAnnualWorkingDays - annualRemoteDaysAllowed; // 208 days
+
+            const maxMissablePercentage = 0.28; // 28%
+            const maxMissableInPersonAllowance = mandatoryInPersonDaysPool * maxMissablePercentage; // 208 * 0.28 = 58.24 days
+
+            // Get user inputs
+            const vacationDays = parseFloat(document.getElementById('vacationDays').value) || 0;
+            const sickDays = parseFloat(document.getElementById('sickDays').value) || 0;
+            const companyHolidays = parseFloat(document.getElementById('companyHolidays').value) || 0;
+
+            const totalUsedAllowance = vacationDays + sickDays + companyHolidays;
+            const remainingFlexDays = maxMissableInPersonAllowance - totalUsedAllowance;
+            const percentageUsedOfAllowance = (totalUsedAllowance / maxMissableInPersonAllowance) * 100;
+            const percentageRemainingOfAllowance = (remainingFlexDays / maxMissableInPersonAllowance) * 100;
+
+            const outputDiv = document.getElementById('outputResults');
+            outputDiv.innerHTML = `
+                <p>Based on a <strong>${totalWorkWeeks}</strong>-week work year and <strong>${daysPerWorkWeek}</strong> days per week:</p>
+                <ul>
+                    <li>You are allowed <strong>${annualRemoteDaysAllowed}</strong> remote days per year (1 day/week).</li>
+                    <li>This leaves <strong>${mandatoryInPersonDaysPool}</strong> days that are subject to the in-person requirement.</li>
+                    <li>Your maximum total allowance for "missable" in-person days (including vacation, sick, and holidays) is approximately <strong>${maxMissableInPersonAllowance.toFixed(2)}</strong> days (28% of ${mandatoryInPersonDaysPool} days).</li>
+                </ul>
+                <p>With your inputs:</p>
+                <ul>
+                    <li>You have <strong>${vacationDays}</strong> vacation days.</li>
+                    <li>You have <strong>${sickDays}</strong> sick days.</li>
+                    <li>You have <strong>${companyHolidays}</strong> company holidays.</li>
+                    <li>Your total pre-allocated non-working days (vacation + sick + holidays) are <strong>${totalUsedAllowance.toFixed(2)}</strong> days.</li>
+                </ul>
+                <h3>Your Remaining Flexible Allowance:</h3>
+                <p>After accounting for your vacation, sick, and company holidays, you have approximately <strong><span style="color: ${remainingFlexDays < 0 ? 'red' : 'green'}; font-weight: bold;">${remainingFlexDays.toFixed(2)}</span></strong> additional flexible "missable" in-person days remaining for the year.</p>
+                <p>This means:</p>
+                <ul>
+                    <li>You have utilized <strong>${percentageUsedOfAllowance.toFixed(2)}%</strong> of your total 28% missable allowance with vacation days, anticipated sick days, and company holidays.</li>
+                    <li>You have <strong>${percentageRemainingOfAllowance.toFixed(2)}%</strong> of your total 28% missable allowance remaining.</li>
+                </ul>
+                ${remainingFlexDays < 0 ? `<p style="color: red; font-weight: bold;">Warning: You have exceeded your 28% missable allowance by ${Math.abs(remainingFlexDays).toFixed(2)} days. You may need to adjust your in-person attendance or day usage.</p>` : ''}
+            `;
+        }
+        // Run calculation on load for default values
+        document.addEventListener('DOMContentLoaded', calculateDays);
+    </script>
+</body>
+</html>
